@@ -40,6 +40,16 @@ interface Camera {
     smoothing: number;
 }
 
+interface Particle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    life: number;
+    color: string;
+    size: number;
+}
+
 class Game {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
@@ -55,6 +65,9 @@ class Game {
     private initialPlayerState: Player;
     private camera: Camera;
     private levelHeight: number = 1200;
+    private particles: Particle[] = [];
+    private goalAnimation: number = 0;
+    private playerSquish: number = 0;
 
     constructor() {
         this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
@@ -79,7 +92,7 @@ class Game {
             width: 50,
             height: 50,
             speed: 5,
-            color: '#3498db',
+            color: '#5DADE2',
             velocityX: 0,
             velocityY: 0,
             isGrounded: false,
@@ -94,42 +107,44 @@ class Game {
 
         this.initialPlayerState = { ...this.player };
 
+        const platformColors = ['#52BE80', '#58D68D', '#45B39D', '#48C9B0', '#5DADE2'];
+        
         this.platforms = [
             // Bottom section (ground level)
-            { x: 100, y: 1100, width: 120, height: 20, color: '#2ecc71' },
-            { x: 600, y: 1100, width: 100, height: 20, color: '#2ecc71' },
-            { x: 350, y: 1030, width: 100, height: 20, color: '#2ecc71' },
+            { x: 100, y: 1100, width: 120, height: 20, color: platformColors[0] },
+            { x: 600, y: 1100, width: 100, height: 20, color: platformColors[1] },
+            { x: 350, y: 1030, width: 100, height: 20, color: platformColors[2] },
             
             // Lower middle section
-            { x: 150, y: 950, width: 100, height: 20, color: '#2ecc71' },
-            { x: 550, y: 950, width: 100, height: 20, color: '#2ecc71' },
-            { x: 350, y: 880, width: 120, height: 20, color: '#2ecc71' },
+            { x: 150, y: 950, width: 100, height: 20, color: platformColors[3] },
+            { x: 550, y: 950, width: 100, height: 20, color: platformColors[4] },
+            { x: 350, y: 880, width: 120, height: 20, color: platformColors[0] },
             
             // Middle section
-            { x: 100, y: 800, width: 80, height: 20, color: '#2ecc71' },
-            { x: 620, y: 800, width: 80, height: 20, color: '#2ecc71' },
-            { x: 250, y: 730, width: 100, height: 20, color: '#2ecc71' },
-            { x: 450, y: 730, width: 100, height: 20, color: '#2ecc71' },
+            { x: 100, y: 800, width: 80, height: 20, color: platformColors[1] },
+            { x: 620, y: 800, width: 80, height: 20, color: platformColors[2] },
+            { x: 250, y: 730, width: 100, height: 20, color: platformColors[3] },
+            { x: 450, y: 730, width: 100, height: 20, color: platformColors[4] },
             
             // Upper middle section  
-            { x: 350, y: 650, width: 100, height: 20, color: '#2ecc71' },
-            { x: 150, y: 580, width: 80, height: 20, color: '#2ecc71' },
-            { x: 570, y: 580, width: 80, height: 20, color: '#2ecc71' },
+            { x: 350, y: 650, width: 100, height: 20, color: platformColors[0] },
+            { x: 150, y: 580, width: 80, height: 20, color: platformColors[1] },
+            { x: 570, y: 580, width: 80, height: 20, color: platformColors[2] },
             
             // Higher section
-            { x: 350, y: 500, width: 120, height: 20, color: '#2ecc71' },
-            { x: 100, y: 430, width: 100, height: 20, color: '#2ecc71' },
-            { x: 600, y: 430, width: 100, height: 20, color: '#2ecc71' },
+            { x: 350, y: 500, width: 120, height: 20, color: platformColors[3] },
+            { x: 100, y: 430, width: 100, height: 20, color: platformColors[4] },
+            { x: 600, y: 430, width: 100, height: 20, color: platformColors[0] },
             
             // Top section
-            { x: 250, y: 350, width: 80, height: 20, color: '#2ecc71' },
-            { x: 470, y: 350, width: 80, height: 20, color: '#2ecc71' },
-            { x: 350, y: 280, width: 100, height: 20, color: '#2ecc71' },
+            { x: 250, y: 350, width: 80, height: 20, color: platformColors[1] },
+            { x: 470, y: 350, width: 80, height: 20, color: platformColors[2] },
+            { x: 350, y: 280, width: 100, height: 20, color: platformColors[3] },
             
             // Near goal
-            { x: 200, y: 200, width: 80, height: 20, color: '#2ecc71' },
-            { x: 520, y: 200, width: 80, height: 20, color: '#2ecc71' },
-            { x: 350, y: 130, width: 120, height: 20, color: '#2ecc71' }
+            { x: 200, y: 200, width: 80, height: 20, color: platformColors[4] },
+            { x: 520, y: 200, width: 80, height: 20, color: platformColors[0] },
+            { x: 350, y: 130, width: 120, height: 20, color: platformColors[1] }
         ];
 
         this.goal = {
@@ -137,7 +152,7 @@ class Game {
             y: 60,
             width: 70,
             height: 50,
-            color: '#f39c12'
+            color: '#F39C12'
         };
 
         this.setupInputHandlers();
@@ -198,6 +213,38 @@ class Game {
         this.hasWon = false;
         this.camera.y = 0;
         this.camera.targetY = 0;
+        this.particles = [];
+        this.goalAnimation = 0;
+        this.playerSquish = 0;
+    }
+
+    private createJumpParticles(): void {
+        if (!this.player.isGrounded) return;
+        
+        for (let i = 0; i < 8; i++) {
+            this.particles.push({
+                x: this.player.x + this.player.width / 2,
+                y: this.player.y + this.player.height,
+                vx: (Math.random() - 0.5) * 4,
+                vy: Math.random() * -2,
+                life: 1,
+                color: '#AED6F1',
+                size: Math.random() * 4 + 2
+            });
+        }
+    }
+
+    private updateParticles(): void {
+        this.particles = this.particles.filter(p => p.life > 0);
+        
+        for (const particle of this.particles) {
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            particle.vy += 0.2;
+            particle.vx *= 0.98;
+            particle.life -= 0.02;
+            particle.size *= 0.98;
+        }
     }
 
     private checkGoalCollision(): boolean {
@@ -242,6 +289,8 @@ class Game {
         if (this.inputs.jump && this.player.isGrounded) {
             this.player.velocityY = this.player.jumpPower;
             this.player.isGrounded = false;
+            this.createJumpParticles();
+            this.playerSquish = 0.8;
         }
 
         this.player.velocityY += this.gravity;
@@ -299,19 +348,53 @@ class Game {
         }
         
         this.updateCamera();
+        this.updateParticles();
+        this.goalAnimation += 0.05;
+        
+        if (this.playerSquish < 1) {
+            this.playerSquish += 0.05;
+        }
     }
 
     private render(): void {
-        this.ctx.fillStyle = '#ecf0f1';
+        // Background gradient
+        const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+        gradient.addColorStop(0, '#2C3E50');
+        gradient.addColorStop(0.5, '#34495E');
+        gradient.addColorStop(1, '#2C3E50');
+        this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.ctx.save();
         this.ctx.translate(0, -this.camera.y);
 
-        this.ctx.fillStyle = '#95a5a6';
+        // Draw background elements
+        this.ctx.fillStyle = 'rgba(52, 73, 94, 0.3)';
+        for (let i = 0; i < 20; i++) {
+            const x = (i * 100 + this.camera.y * 0.1) % this.canvas.width;
+            const y = (i * 150) % this.levelHeight;
+            this.ctx.fillRect(x, y, 30, 30);
+        }
+        
+        // Ground
+        const groundGradient = this.ctx.createLinearGradient(0, this.groundY, 0, this.levelHeight);
+        groundGradient.addColorStop(0, '#7F8C8D');
+        groundGradient.addColorStop(1, '#95A5A6');
+        this.ctx.fillStyle = groundGradient;
         this.ctx.fillRect(0, this.groundY, this.canvas.width, this.levelHeight - this.groundY);
 
+        // Platforms with shadows
         for (const platform of this.platforms) {
+            // Shadow
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            this.ctx.fillRect(
+                platform.x + 3,
+                platform.y + 3,
+                platform.width,
+                platform.height
+            );
+            
+            // Platform
             this.ctx.fillStyle = platform.color;
             this.ctx.fillRect(
                 platform.x,
@@ -320,44 +403,95 @@ class Game {
                 platform.height
             );
             
-            this.ctx.strokeStyle = '#27ae60';
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(
+            // Highlight
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            this.ctx.fillRect(
                 platform.x,
                 platform.y,
                 platform.width,
-                platform.height
+                4
             );
         }
 
+        // Particles
+        for (const particle of this.particles) {
+            this.ctx.globalAlpha = particle.life;
+            this.ctx.fillStyle = particle.color;
+            this.ctx.fillRect(
+                particle.x - particle.size / 2,
+                particle.y - particle.size / 2,
+                particle.size,
+                particle.size
+            );
+        }
+        this.ctx.globalAlpha = 1;
+
+        // Animated goal
+        const goalPulse = Math.sin(this.goalAnimation) * 5;
+        
+        // Goal glow
+        this.ctx.shadowColor = '#F39C12';
+        this.ctx.shadowBlur = 20 + goalPulse;
+        
         this.ctx.fillStyle = this.goal.color;
         this.ctx.fillRect(
-            this.goal.x,
-            this.goal.y,
-            this.goal.width,
-            this.goal.height
+            this.goal.x - goalPulse / 2,
+            this.goal.y - goalPulse / 2,
+            this.goal.width + goalPulse,
+            this.goal.height + goalPulse
         );
         
-        this.ctx.strokeStyle = '#e67e22';
+        this.ctx.shadowBlur = 0;
+        
+        this.ctx.strokeStyle = '#E67E22';
         this.ctx.lineWidth = 3;
         this.ctx.strokeRect(
-            this.goal.x,
-            this.goal.y,
-            this.goal.width,
-            this.goal.height
+            this.goal.x - goalPulse / 2,
+            this.goal.y - goalPulse / 2,
+            this.goal.width + goalPulse,
+            this.goal.height + goalPulse
         );
         
         this.ctx.fillStyle = '#fff';
         this.ctx.font = 'bold 16px Arial';
         this.ctx.fillText('GOAL', this.goal.x + 13, this.goal.y + 30);
 
-        this.ctx.fillStyle = this.player.color;
+        // Player with squish animation
+        const squishY = 1 / this.playerSquish;
+        
+        this.ctx.save();
+        this.ctx.translate(this.player.x + this.player.width / 2, this.player.y + this.player.height);
+        this.ctx.scale(this.playerSquish, squishY);
+        
+        // Player shadow
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
         this.ctx.fillRect(
-            Math.round(this.player.x),
-            Math.round(this.player.y),
+            -this.player.width / 2 + 2,
+            -this.player.height + 2,
             this.player.width,
             this.player.height
         );
+        
+        // Player body
+        this.ctx.fillStyle = this.player.color;
+        this.ctx.fillRect(
+            -this.player.width / 2,
+            -this.player.height,
+            this.player.width,
+            this.player.height
+        );
+        
+        // Player eyes
+        this.ctx.fillStyle = '#fff';
+        this.ctx.fillRect(-15, -this.player.height + 10, 8, 8);
+        this.ctx.fillRect(7, -this.player.height + 10, 8, 8);
+        
+        this.ctx.fillStyle = '#000';
+        const eyeOffset = this.inputs.left ? -2 : this.inputs.right ? 2 : 0;
+        this.ctx.fillRect(-13 + eyeOffset, -this.player.height + 12, 4, 4);
+        this.ctx.fillRect(9 + eyeOffset, -this.player.height + 12, 4, 4);
+        
+        this.ctx.restore();
         
         this.ctx.restore();
 
@@ -375,13 +509,16 @@ class Game {
             this.ctx.textAlign = 'left';
         }
 
-        this.ctx.fillStyle = '#7f8c8d';
+        this.ctx.fillStyle = '#ECF0F1';
+        this.ctx.font = 'bold 14px Arial';
+        this.ctx.fillText('Phase 6: Visual Polish', 10, 20);
         this.ctx.font = '14px Arial';
-        this.ctx.fillText('Phase 5: Camera & Larger Level', 10, 20);
-        this.ctx.fillText('Climb to the top! Camera follows you vertically', 10, 40);
+        this.ctx.fillText('Jump to see particles! Goal pulses with energy', 10, 40);
         
         const altitude = Math.max(0, Math.round(this.levelHeight - this.player.y - 150));
-        this.ctx.fillText(`Altitude: ${altitude}m`, 10, 60);
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.fillStyle = '#F39C12';
+        this.ctx.fillText(`⬆ ${altitude}m`, 10, 65);
     }
 
     private gameLoop = (): void => {

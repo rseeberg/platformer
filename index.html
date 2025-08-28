@@ -12,14 +12,14 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #2c3e50;
-            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         #gameCanvas {
-            border: 2px solid #34495e;
-            background-color: #ecf0f1;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border: 3px solid #1a252f;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 80px rgba(41, 128, 185, 0.3);
         }
         
         .controls {
@@ -27,13 +27,24 @@
             bottom: 20px;
             color: #ecf0f1;
             text-align: center;
+            font-size: 16px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .controls span {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin: 0 5px;
         }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <div class="controls">
-        Use Arrow Keys to Move | Space or Up Arrow to Jump
+        <span>⬅️➡️ Move</span>
+        <span>🔼 Space Jump</span>
+        <span>R Restart</span>
     </div>
     <script src="dist/game.js"></script>
 </body>

@@ -83,12 +83,12 @@ Building a simple platform jumping game using TypeScript and HTML5 Canvas, witho
 **Goal**: Make the game look better
 
 ### Tasks
-- [ ] Add colors to platforms
-- [ ] Create player sprite/animation
-- [ ] Add background gradient
-- [ ] Implement simple particle effects for jumping
-- [ ] Add visual feedback for goal
-- [ ] Style the canvas and page
+- [x] Add colors to platforms
+- [x] Create player sprite/animation
+- [x] Add background gradient
+- [x] Implement simple particle effects for jumping
+- [x] Add visual feedback for goal
+- [x] Style the canvas and page
 
 **Test**: Game looks polished and provides visual feedback
 
@@ -146,4 +146,4 @@ tsc
 - **Physics**: Simple velocity-based movement with gravity
 
 ## Current Phase
-**Completed Phase 5 - Ready for Phase 6: Visual Polish**
+**Completed Phase 6 - Ready for Phase 7: Game Features**
