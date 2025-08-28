@@ -17,10 +17,19 @@ interface InputState {
     jump: boolean;
 }
 
+interface Platform {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    color: string;
+}
+
 class Game {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
     private player: Player;
+    private platforms: Platform[];
     private inputs: InputState;
     private animationId: number | null = null;
     private gravity: number = 0.5;
@@ -55,6 +64,16 @@ class Game {
             right: false,
             jump: false
         };
+
+        this.platforms = [
+            { x: 100, y: 400, width: 120, height: 20, color: '#2ecc71' },
+            { x: 300, y: 320, width: 100, height: 20, color: '#2ecc71' },
+            { x: 500, y: 250, width: 150, height: 20, color: '#2ecc71' },
+            { x: 200, y: 180, width: 80, height: 20, color: '#2ecc71' },
+            { x: 400, y: 120, width: 100, height: 20, color: '#2ecc71' },
+            { x: 600, y: 400, width: 100, height: 20, color: '#2ecc71' },
+            { x: 50, y: 280, width: 80, height: 20, color: '#2ecc71' }
+        ];
 
         this.setupInputHandlers();
     }
@@ -97,6 +116,13 @@ class Game {
         });
     }
 
+    private checkPlatformCollision(platform: Platform): boolean {
+        return this.player.x < platform.x + platform.width &&
+               this.player.x + this.player.width > platform.x &&
+               this.player.y < platform.y + platform.height &&
+               this.player.y + this.player.height > platform.y;
+    }
+
     private update(): void {
         if (this.inputs.left) {
             this.player.velocityX = -this.player.speed;
@@ -125,12 +151,44 @@ class Game {
             this.player.velocityX = 0;
         }
 
-        if (this.player.y + this.player.height > this.groundY) {
-            this.player.y = this.groundY - this.player.height;
-            this.player.velocityY = 0;
-            this.player.isGrounded = true;
-        } else {
-            this.player.isGrounded = false;
+        let onPlatform = false;
+        
+        for (const platform of this.platforms) {
+            if (this.checkPlatformCollision(platform)) {
+                const playerBottom = this.player.y + this.player.height;
+                const playerTop = this.player.y;
+                const playerPrevBottom = playerBottom - this.player.velocityY;
+                
+                if (playerPrevBottom <= platform.y && this.player.velocityY >= 0) {
+                    this.player.y = platform.y - this.player.height;
+                    this.player.velocityY = 0;
+                    this.player.isGrounded = true;
+                    onPlatform = true;
+                }
+                else if (playerTop < platform.y + platform.height && 
+                         this.player.y > platform.y && 
+                         this.player.velocityY < 0) {
+                    this.player.y = platform.y + platform.height;
+                    this.player.velocityY = 0;
+                }
+                else if (this.player.x < platform.x + platform.width / 2) {
+                    this.player.x = platform.x - this.player.width;
+                    this.player.velocityX = 0;
+                } else {
+                    this.player.x = platform.x + platform.width;
+                    this.player.velocityX = 0;
+                }
+            }
+        }
+        
+        if (!onPlatform) {
+            if (this.player.y + this.player.height > this.groundY) {
+                this.player.y = this.groundY - this.player.height;
+                this.player.velocityY = 0;
+                this.player.isGrounded = true;
+            } else {
+                this.player.isGrounded = false;
+            }
         }
     }
 
@@ -140,6 +198,25 @@ class Game {
 
         this.ctx.fillStyle = '#95a5a6';
         this.ctx.fillRect(0, this.groundY, this.canvas.width, this.canvas.height - this.groundY);
+
+        for (const platform of this.platforms) {
+            this.ctx.fillStyle = platform.color;
+            this.ctx.fillRect(
+                platform.x,
+                platform.y,
+                platform.width,
+                platform.height
+            );
+            
+            this.ctx.strokeStyle = '#27ae60';
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(
+                platform.x,
+                platform.y,
+                platform.width,
+                platform.height
+            );
+        }
 
         this.ctx.fillStyle = this.player.color;
         this.ctx.fillRect(
@@ -151,8 +228,8 @@ class Game {
 
         this.ctx.fillStyle = '#7f8c8d';
         this.ctx.font = '14px Arial';
-        this.ctx.fillText('Phase 2: Gravity & Jumping', 10, 20);
-        this.ctx.fillText('Use Arrow Keys to Move, Space/Up to Jump', 10, 40);
+        this.ctx.fillText('Phase 3: Platforms', 10, 20);
+        this.ctx.fillText('Jump between platforms to climb higher!', 10, 40);
     }
 
     private gameLoop = (): void => {

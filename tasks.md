@@ -37,13 +37,13 @@ Building a simple platform jumping game using TypeScript and HTML5 Canvas, witho
 **Goal**: Add platforms the player can jump on
 
 ### Tasks
-- [ ] Create Platform class/interface
-- [ ] Add array of platform objects
-- [ ] Render platforms on screen
-- [ ] Implement AABB collision detection
-- [ ] Handle platform-player collisions
-- [ ] Allow jumping from platforms
-- [ ] Position platforms at different heights
+- [x] Create Platform class/interface
+- [x] Add array of platform objects
+- [x] Render platforms on screen
+- [x] Implement AABB collision detection
+- [x] Handle platform-player collisions
+- [x] Allow jumping from platforms
+- [x] Position platforms at different heights
 
 **Test**: Player can jump between multiple platforms
 
@@ -146,4 +146,4 @@ tsc
 - **Physics**: Simple velocity-based movement with gravity
 
 ## Current Phase
-**Completed Phase 2 - Ready for Phase 3: Basic Platforms**
+**Completed Phase 3 - Ready for Phase 4: Goal & Win Condition**
