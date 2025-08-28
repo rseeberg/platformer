@@ -56,7 +56,7 @@ class Game {
             velocityX: 0,
             velocityY: 0,
             isGrounded: false,
-            jumpPower: -12
+            jumpPower: -15
         };
 
         this.inputs = {
@@ -66,13 +66,13 @@ class Game {
         };
 
         this.platforms = [
-            { x: 100, y: 400, width: 120, height: 20, color: '#2ecc71' },
-            { x: 300, y: 320, width: 100, height: 20, color: '#2ecc71' },
-            { x: 500, y: 250, width: 150, height: 20, color: '#2ecc71' },
-            { x: 200, y: 180, width: 80, height: 20, color: '#2ecc71' },
-            { x: 400, y: 120, width: 100, height: 20, color: '#2ecc71' },
-            { x: 600, y: 400, width: 100, height: 20, color: '#2ecc71' },
-            { x: 50, y: 280, width: 80, height: 20, color: '#2ecc71' }
+            { x: 100, y: 450, width: 120, height: 20, color: '#2ecc71' },
+            { x: 300, y: 380, width: 100, height: 20, color: '#2ecc71' },
+            { x: 500, y: 310, width: 150, height: 20, color: '#2ecc71' },
+            { x: 200, y: 240, width: 80, height: 20, color: '#2ecc71' },
+            { x: 400, y: 170, width: 100, height: 20, color: '#2ecc71' },
+            { x: 600, y: 450, width: 100, height: 20, color: '#2ecc71' },
+            { x: 50, y: 350, width: 80, height: 20, color: '#2ecc71' }
         ];
 
         this.setupInputHandlers();
