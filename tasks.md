@@ -7,12 +7,12 @@ Building a simple platform jumping game using TypeScript and HTML5 Canvas, witho
 **Goal**: Get a colored rectangle moving on screen with keyboard controls
 
 ### Tasks
-- [ ] Create `index.html` with canvas element
-- [ ] Set up `tsconfig.json` for TypeScript compilation
-- [ ] Create `src/game.ts` with basic game loop
-- [ ] Implement player rectangle rendering
-- [ ] Add keyboard input handling (left/right arrows)
-- [ ] Implement horizontal movement
+- [x] Create `index.html` with canvas element
+- [x] Set up `tsconfig.json` for TypeScript compilation
+- [x] Create `src/game.ts` with basic game loop
+- [x] Implement player rectangle rendering
+- [x] Add keyboard input handling (left/right arrows)
+- [x] Implement horizontal movement
 
 **Test**: Open index.html, see a rectangle that moves left/right with arrow keys
 
@@ -22,12 +22,12 @@ Building a simple platform jumping game using TypeScript and HTML5 Canvas, witho
 **Goal**: Add physics to make the player fall and jump
 
 ### Tasks
-- [ ] Add velocity properties to player
-- [ ] Implement gravity (constant downward acceleration)
-- [ ] Add ground/floor collision
-- [ ] Implement jump mechanics (spacebar)
-- [ ] Add jump velocity and prevent double-jumping
-- [ ] Fine-tune physics values for good game feel
+- [x] Add velocity properties to player
+- [x] Implement gravity (constant downward acceleration)
+- [x] Add ground/floor collision
+- [x] Implement jump mechanics (spacebar)
+- [x] Add jump velocity and prevent double-jumping
+- [x] Fine-tune physics values for good game feel
 
 **Test**: Player falls to ground, can jump with spacebar, feels responsive
 
@@ -146,4 +146,4 @@ tsc
 - **Physics**: Simple velocity-based movement with gravity
 
 ## Current Phase
-**Starting with Phase 1**
+**Completed Phase 2 - Ready for Phase 3: Basic Platforms**
