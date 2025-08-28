@@ -53,12 +53,12 @@ Building a simple platform jumping game using TypeScript and HTML5 Canvas, witho
 **Goal**: Add an objective to reach
 
 ### Tasks
-- [ ] Create goal area/platform (visually distinct)
-- [ ] Position goal at top of level
-- [ ] Detect when player reaches goal
-- [ ] Display "You Win!" message
-- [ ] Add restart functionality (R key)
-- [ ] Create simple level layout
+- [x] Create goal area/platform (visually distinct)
+- [x] Position goal at top of level
+- [x] Detect when player reaches goal
+- [x] Display "You Win!" message
+- [x] Add restart functionality (R key)
+- [x] Create simple level layout
 
 **Test**: Complete game loop - reach goal, see win message, restart
 
@@ -146,4 +146,4 @@ tsc
 - **Physics**: Simple velocity-based movement with gravity
 
 ## Current Phase
-**Completed Phase 3 - Ready for Phase 4: Goal & Win Condition**
+**Completed Phase 4 - Ready for Phase 5: Camera & Larger Level**

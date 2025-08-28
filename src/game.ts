@@ -25,16 +25,27 @@ interface Platform {
     color: string;
 }
 
+interface Goal {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    color: string;
+}
+
 class Game {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
     private player: Player;
     private platforms: Platform[];
+    private goal: Goal;
     private inputs: InputState;
     private animationId: number | null = null;
     private gravity: number = 0.5;
     private friction: number = 0.8;
     private groundY: number;
+    private hasWon: boolean = false;
+    private initialPlayerState: Player;
 
     constructor() {
         this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
@@ -56,7 +67,7 @@ class Game {
             velocityX: 0,
             velocityY: 0,
             isGrounded: false,
-            jumpPower: -15
+            jumpPower: -12
         };
 
         this.inputs = {
@@ -65,6 +76,8 @@ class Game {
             jump: false
         };
 
+        this.initialPlayerState = { ...this.player };
+
         this.platforms = [
             { x: 100, y: 450, width: 120, height: 20, color: '#2ecc71' },
             { x: 300, y: 380, width: 100, height: 20, color: '#2ecc71' },
@@ -72,8 +85,17 @@ class Game {
             { x: 200, y: 240, width: 80, height: 20, color: '#2ecc71' },
             { x: 400, y: 170, width: 100, height: 20, color: '#2ecc71' },
             { x: 600, y: 450, width: 100, height: 20, color: '#2ecc71' },
-            { x: 50, y: 350, width: 80, height: 20, color: '#2ecc71' }
+            { x: 50, y: 350, width: 80, height: 20, color: '#2ecc71' },
+            { x: 350, y: 100, width: 120, height: 20, color: '#2ecc71' }
         ];
+
+        this.goal = {
+            x: 375,
+            y: 50,
+            width: 70,
+            height: 50,
+            color: '#f39c12'
+        };
 
         this.setupInputHandlers();
     }
@@ -92,6 +114,11 @@ class Game {
                 case ' ':
                 case 'ArrowUp':
                     this.inputs.jump = true;
+                    e.preventDefault();
+                    break;
+                case 'r':
+                case 'R':
+                    this.reset();
                     e.preventDefault();
                     break;
             }
@@ -123,7 +150,27 @@ class Game {
                this.player.y + this.player.height > platform.y;
     }
 
+    private reset(): void {
+        this.player = { ...this.initialPlayerState };
+        this.hasWon = false;
+    }
+
+    private checkGoalCollision(): boolean {
+        return this.player.x < this.goal.x + this.goal.width &&
+               this.player.x + this.player.width > this.goal.x &&
+               this.player.y < this.goal.y + this.goal.height &&
+               this.player.y + this.player.height > this.goal.y;
+    }
+
     private update(): void {
+        if (this.hasWon) {
+            return;
+        }
+
+        if (this.checkGoalCollision()) {
+            this.hasWon = true;
+            return;
+        }
         if (this.inputs.left) {
             this.player.velocityX = -this.player.speed;
         } else if (this.inputs.right) {
@@ -218,6 +265,27 @@ class Game {
             );
         }
 
+        this.ctx.fillStyle = this.goal.color;
+        this.ctx.fillRect(
+            this.goal.x,
+            this.goal.y,
+            this.goal.width,
+            this.goal.height
+        );
+        
+        this.ctx.strokeStyle = '#e67e22';
+        this.ctx.lineWidth = 3;
+        this.ctx.strokeRect(
+            this.goal.x,
+            this.goal.y,
+            this.goal.width,
+            this.goal.height
+        );
+        
+        this.ctx.fillStyle = '#fff';
+        this.ctx.font = '16px Arial';
+        this.ctx.fillText('GOAL', this.goal.x + 13, this.goal.y + 30);
+
         this.ctx.fillStyle = this.player.color;
         this.ctx.fillRect(
             Math.round(this.player.x),
@@ -226,10 +294,24 @@ class Game {
             this.player.height
         );
 
+        if (this.hasWon) {
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            
+            this.ctx.fillStyle = '#fff';
+            this.ctx.font = 'bold 48px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText('YOU WIN!', this.canvas.width / 2, this.canvas.height / 2 - 30);
+            
+            this.ctx.font = '24px Arial';
+            this.ctx.fillText('Press R to Restart', this.canvas.width / 2, this.canvas.height / 2 + 20);
+            this.ctx.textAlign = 'left';
+        }
+
         this.ctx.fillStyle = '#7f8c8d';
         this.ctx.font = '14px Arial';
-        this.ctx.fillText('Phase 3: Platforms', 10, 20);
-        this.ctx.fillText('Jump between platforms to climb higher!', 10, 40);
+        this.ctx.fillText('Phase 4: Goal & Win Condition', 10, 20);
+        this.ctx.fillText('Reach the golden goal! Press R to restart', 10, 40);
     }
 
     private gameLoop = (): void => {
