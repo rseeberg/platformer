@@ -33,6 +33,13 @@ interface Goal {
     color: string;
 }
 
+interface Camera {
+    x: number;
+    y: number;
+    targetY: number;
+    smoothing: number;
+}
+
 class Game {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
@@ -46,6 +53,8 @@ class Game {
     private groundY: number;
     private hasWon: boolean = false;
     private initialPlayerState: Player;
+    private camera: Camera;
+    private levelHeight: number = 1200;
 
     constructor() {
         this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
@@ -55,11 +64,18 @@ class Game {
         }
         this.ctx = ctx;
 
-        this.groundY = this.canvas.height - 50;
+        this.groundY = this.levelHeight - 50;
+        
+        this.camera = {
+            x: 0,
+            y: 0,
+            targetY: 0,
+            smoothing: 0.1
+        };
         
         this.player = {
             x: this.canvas.width / 2 - 25,
-            y: this.canvas.height - 150,
+            y: this.levelHeight - 150,
             width: 50,
             height: 50,
             speed: 5,
@@ -67,7 +83,7 @@ class Game {
             velocityX: 0,
             velocityY: 0,
             isGrounded: false,
-            jumpPower: -12
+            jumpPower: -14
         };
 
         this.inputs = {
@@ -79,19 +95,46 @@ class Game {
         this.initialPlayerState = { ...this.player };
 
         this.platforms = [
-            { x: 100, y: 450, width: 120, height: 20, color: '#2ecc71' },
-            { x: 300, y: 380, width: 100, height: 20, color: '#2ecc71' },
-            { x: 500, y: 310, width: 150, height: 20, color: '#2ecc71' },
-            { x: 200, y: 240, width: 80, height: 20, color: '#2ecc71' },
-            { x: 400, y: 170, width: 100, height: 20, color: '#2ecc71' },
-            { x: 600, y: 450, width: 100, height: 20, color: '#2ecc71' },
-            { x: 50, y: 350, width: 80, height: 20, color: '#2ecc71' },
-            { x: 350, y: 100, width: 120, height: 20, color: '#2ecc71' }
+            // Bottom section (ground level)
+            { x: 100, y: 1100, width: 120, height: 20, color: '#2ecc71' },
+            { x: 600, y: 1100, width: 100, height: 20, color: '#2ecc71' },
+            { x: 350, y: 1030, width: 100, height: 20, color: '#2ecc71' },
+            
+            // Lower middle section
+            { x: 150, y: 950, width: 100, height: 20, color: '#2ecc71' },
+            { x: 550, y: 950, width: 100, height: 20, color: '#2ecc71' },
+            { x: 350, y: 880, width: 120, height: 20, color: '#2ecc71' },
+            
+            // Middle section
+            { x: 100, y: 800, width: 80, height: 20, color: '#2ecc71' },
+            { x: 620, y: 800, width: 80, height: 20, color: '#2ecc71' },
+            { x: 250, y: 730, width: 100, height: 20, color: '#2ecc71' },
+            { x: 450, y: 730, width: 100, height: 20, color: '#2ecc71' },
+            
+            // Upper middle section  
+            { x: 350, y: 650, width: 100, height: 20, color: '#2ecc71' },
+            { x: 150, y: 580, width: 80, height: 20, color: '#2ecc71' },
+            { x: 570, y: 580, width: 80, height: 20, color: '#2ecc71' },
+            
+            // Higher section
+            { x: 350, y: 500, width: 120, height: 20, color: '#2ecc71' },
+            { x: 100, y: 430, width: 100, height: 20, color: '#2ecc71' },
+            { x: 600, y: 430, width: 100, height: 20, color: '#2ecc71' },
+            
+            // Top section
+            { x: 250, y: 350, width: 80, height: 20, color: '#2ecc71' },
+            { x: 470, y: 350, width: 80, height: 20, color: '#2ecc71' },
+            { x: 350, y: 280, width: 100, height: 20, color: '#2ecc71' },
+            
+            // Near goal
+            { x: 200, y: 200, width: 80, height: 20, color: '#2ecc71' },
+            { x: 520, y: 200, width: 80, height: 20, color: '#2ecc71' },
+            { x: 350, y: 130, width: 120, height: 20, color: '#2ecc71' }
         ];
 
         this.goal = {
-            x: 375,
-            y: 50,
+            x: 365,
+            y: 60,
             width: 70,
             height: 50,
             color: '#f39c12'
@@ -153,6 +196,8 @@ class Game {
     private reset(): void {
         this.player = { ...this.initialPlayerState };
         this.hasWon = false;
+        this.camera.y = 0;
+        this.camera.targetY = 0;
     }
 
     private checkGoalCollision(): boolean {
@@ -160,6 +205,21 @@ class Game {
                this.player.x + this.player.width > this.goal.x &&
                this.player.y < this.goal.y + this.goal.height &&
                this.player.y + this.player.height > this.goal.y;
+    }
+
+    private updateCamera(): void {
+        const screenMiddle = this.canvas.height / 2;
+        const playerScreenY = this.player.y - this.camera.y;
+        
+        if (playerScreenY < screenMiddle - 100) {
+            this.camera.targetY = this.player.y - (screenMiddle - 100);
+        } else if (playerScreenY > screenMiddle + 100) {
+            this.camera.targetY = this.player.y - (screenMiddle + 100);
+        }
+        
+        this.camera.targetY = Math.max(0, Math.min(this.camera.targetY, this.levelHeight - this.canvas.height));
+        
+        this.camera.y += (this.camera.targetY - this.camera.y) * this.camera.smoothing;
     }
 
     private update(): void {
@@ -237,14 +297,19 @@ class Game {
                 this.player.isGrounded = false;
             }
         }
+        
+        this.updateCamera();
     }
 
     private render(): void {
         this.ctx.fillStyle = '#ecf0f1';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+        this.ctx.save();
+        this.ctx.translate(0, -this.camera.y);
+
         this.ctx.fillStyle = '#95a5a6';
-        this.ctx.fillRect(0, this.groundY, this.canvas.width, this.canvas.height - this.groundY);
+        this.ctx.fillRect(0, this.groundY, this.canvas.width, this.levelHeight - this.groundY);
 
         for (const platform of this.platforms) {
             this.ctx.fillStyle = platform.color;
@@ -283,7 +348,7 @@ class Game {
         );
         
         this.ctx.fillStyle = '#fff';
-        this.ctx.font = '16px Arial';
+        this.ctx.font = 'bold 16px Arial';
         this.ctx.fillText('GOAL', this.goal.x + 13, this.goal.y + 30);
 
         this.ctx.fillStyle = this.player.color;
@@ -293,6 +358,8 @@ class Game {
             this.player.width,
             this.player.height
         );
+        
+        this.ctx.restore();
 
         if (this.hasWon) {
             this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
@@ -310,8 +377,11 @@ class Game {
 
         this.ctx.fillStyle = '#7f8c8d';
         this.ctx.font = '14px Arial';
-        this.ctx.fillText('Phase 4: Goal & Win Condition', 10, 20);
-        this.ctx.fillText('Reach the golden goal! Press R to restart', 10, 40);
+        this.ctx.fillText('Phase 5: Camera & Larger Level', 10, 20);
+        this.ctx.fillText('Climb to the top! Camera follows you vertically', 10, 40);
+        
+        const altitude = Math.max(0, Math.round(this.levelHeight - this.player.y - 150));
+        this.ctx.fillText(`Altitude: ${altitude}m`, 10, 60);
     }
 
     private gameLoop = (): void => {

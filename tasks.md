@@ -68,12 +68,12 @@ Building a simple platform jumping game using TypeScript and HTML5 Canvas, witho
 **Goal**: Add camera following for bigger levels
 
 ### Tasks
-- [ ] Implement camera offset system
-- [ ] Make camera follow player vertically
-- [ ] Add smooth camera movement
-- [ ] Create taller level with more platforms
-- [ ] Ensure UI elements stay in place
-- [ ] Add bounds checking
+- [x] Implement camera offset system
+- [x] Make camera follow player vertically
+- [x] Add smooth camera movement
+- [x] Create taller level with more platforms
+- [x] Ensure UI elements stay in place
+- [x] Add bounds checking
 
 **Test**: Camera follows player smoothly as they climb
 
@@ -146,4 +146,4 @@ tsc
 - **Physics**: Simple velocity-based movement with gravity
 
 ## Current Phase
-**Completed Phase 4 - Ready for Phase 5: Camera & Larger Level**
+**Completed Phase 5 - Ready for Phase 6: Visual Polish**
