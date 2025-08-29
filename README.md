@@ -53,7 +53,7 @@ A complete 2D platformer game built with TypeScript and HTML5 Canvas, featuring 
 ## 🚀 Quick Start
 
 ### Play Online
-**[🎮 Play the Game](https://yourusername.github.io/platformer)** *(GitHub Pages - Coming Soon)*
+**[🎮 Play the Game](https://rseeberg.github.io/platformer)** *(GitHub Pages)*
 
 ### Local Development
 
@@ -64,7 +64,7 @@ A complete 2D platformer game built with TypeScript and HTML5 Canvas, featuring 
 #### Setup
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/platformer.git
+git clone https://github.com/rseeberg/platformer.git
 cd platformer
 
 # Install dependencies
