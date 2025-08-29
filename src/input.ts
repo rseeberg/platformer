@@ -40,127 +40,165 @@ export class InputHandler {
         // Only create touch controls on touch devices
         if (!('ontouchstart' in window)) return;
 
-        const controlsContainer = document.createElement('div');
-        controlsContainer.id = 'touch-controls';
-        controlsContainer.style.cssText = `
+        // Create invisible full-screen touch zones
+        this.createTouchZones();
+    }
+
+    private createTouchZones(): void {
+        // Create invisible overlay for touch detection
+        const touchOverlay = document.createElement('div');
+        touchOverlay.id = 'touch-overlay';
+        touchOverlay.style.cssText = `
             position: fixed;
-            bottom: 20px;
+            top: 0;
             left: 0;
-            right: 0;
-            z-index: 1000;
-            pointer-events: none;
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-touch-callout: none;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 20px;
-        `;
-
-        // Left side controls (movement)
-        const leftControls = document.createElement('div');
-        leftControls.style.cssText = `
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        `;
-
-        // Left arrow button
-        const leftBtn = this.createTouchButton('←', 'left');
-        leftControls.appendChild(leftBtn);
-
-        // Right arrow button  
-        const rightBtn = this.createTouchButton('→', 'right');
-        leftControls.appendChild(rightBtn);
-
-        // Jump button (right side)
-        const jumpBtn = this.createTouchButton('↑', 'jump');
-        jumpBtn.style.cssText += `
-            width: 80px;
-            height: 80px;
-            font-size: 32px;
-            border-radius: 50%;
-        `;
-
-        // Pause button
-        const pauseBtn = this.createTouchButton('⏸', 'pause');
-        pauseBtn.style.cssText += `
-            width: 50px;
-            height: 50px;
-            font-size: 20px;
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            bottom: unset;
-        `;
-
-        controlsContainer.appendChild(leftControls);
-        controlsContainer.appendChild(jumpBtn);
-        controlsContainer.appendChild(pauseBtn);
-        
-        document.body.appendChild(controlsContainer);
-    }
-
-    private createTouchButton(text: string, action: string): HTMLElement {
-        const button = document.createElement('div');
-        button.textContent = text;
-        button.style.cssText = `
-            width: 60px;
-            height: 60px;
-            background: rgba(255, 255, 255, 0.8);
-            border: 2px solid #333;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
+            width: 100vw;
+            height: 100vh;
+            z-index: 999;
             pointer-events: auto;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-            transition: all 0.1s;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         `;
 
-        // Store reference
-        this.touchControls.set(action, button);
+        // Variables for touch tracking
+        let activeTouches = new Map();
+        const SWIPE_THRESHOLD = 50; // minimum distance for swipe
+        const SWIPE_TIME_THRESHOLD = 300; // maximum time for swipe (ms)
 
-        // Touch events for visual feedback and input
-        button.addEventListener('touchstart', (e) => {
+        // Touch start handler
+        touchOverlay.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            button.style.background = 'rgba(200, 200, 200, 0.9)';
-            button.style.transform = 'scale(0.95)';
             
-            if (action === 'left' || action === 'right' || action === 'jump') {
-                this.inputs[action as keyof InputState] = true;
-            } else if (action === 'pause' && this.onPauseCallback) {
-                this.onPauseCallback();
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                const touchX = touch.clientX;
+                const touchY = touch.clientY;
+                const screenWidth = window.innerWidth;
+                
+                activeTouches.set(touch.identifier, {
+                    startX: touchX,
+                    startY: touchY,
+                    currentX: touchX,
+                    currentY: touchY,
+                    startTime: Date.now()
+                });
+
+                // Determine if touch is on left or right side
+                if (touchX < screenWidth / 2) {
+                    // Left side - move left
+                    this.inputs.left = true;
+                    this.inputs.right = false;
+                } else {
+                    // Right side - move right
+                    this.inputs.right = true;
+                    this.inputs.left = false;
+                }
+
             }
         }, { passive: false });
 
-        button.addEventListener('touchend', (e) => {
+        // Touch move handler for swipe detection
+        touchOverlay.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            button.style.background = 'rgba(255, 255, 255, 0.8)';
-            button.style.transform = 'scale(1)';
             
-            if (action === 'left' || action === 'right' || action === 'jump') {
-                this.inputs[action as keyof InputState] = false;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                const touchData = activeTouches.get(touch.identifier);
+                
+                if (touchData) {
+                    touchData.currentX = touch.clientX;
+                    touchData.currentY = touch.clientY;
+                    
+                    // Check for upward swipe (jump)
+                    const deltaY = touchData.startY - touch.clientY;
+                    const deltaTime = Date.now() - touchData.startTime;
+                    
+                    if (deltaY > SWIPE_THRESHOLD && deltaTime < SWIPE_TIME_THRESHOLD) {
+                        if (!this.inputs.jump) {
+                            this.inputs.jump = true;
+                            // Brief jump input
+                            setTimeout(() => {
+                                this.inputs.jump = false;
+                            }, 100);
+                        }
+                    }
+                }
             }
         }, { passive: false });
 
-        // Handle touch cancel (when finger moves off button)
-        button.addEventListener('touchcancel', (e) => {
+        // Touch end handler
+        touchOverlay.addEventListener('touchend', (e) => {
             e.preventDefault();
-            button.style.background = 'rgba(255, 255, 255, 0.8)';
-            button.style.transform = 'scale(1)';
             
-            if (action === 'left' || action === 'right' || action === 'jump') {
-                this.inputs[action as keyof InputState] = false;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                const touchData = activeTouches.get(touch.identifier);
+                
+                if (touchData) {
+                    // Check for upward swipe on touch end
+                    const deltaY = touchData.startY - touchData.currentY;
+                    const deltaTime = Date.now() - touchData.startTime;
+                    
+                    if (deltaY > SWIPE_THRESHOLD && deltaTime < SWIPE_TIME_THRESHOLD) {
+                        if (!this.inputs.jump) {
+                            this.inputs.jump = true;
+                            setTimeout(() => {
+                                this.inputs.jump = false;
+                            }, 100);
+                        }
+                    }
+                    
+                    activeTouches.delete(touch.identifier);
+                }
+            }
+            
+            // If no active touches remain, stop movement
+            if (activeTouches.size === 0) {
+                this.inputs.left = false;
+                this.inputs.right = false;
+            } else {
+                // Check remaining touches to maintain movement
+                let hasLeft = false;
+                let hasRight = false;
+                const screenWidth = window.innerWidth;
+                
+                activeTouches.forEach((touchData) => {
+                    if (touchData.currentX < screenWidth / 2) {
+                        hasLeft = true;
+                    } else {
+                        hasRight = true;
+                    }
+                });
+                
+                this.inputs.left = hasLeft;
+                this.inputs.right = hasRight;
             }
         }, { passive: false });
 
-        return button;
+        // Touch cancel handler
+        touchOverlay.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                activeTouches.delete(touch.identifier);
+            }
+            
+            // Stop all movement on cancel
+            if (activeTouches.size === 0) {
+                this.inputs.left = false;
+                this.inputs.right = false;
+            }
+        }, { passive: false });
+
+        document.body.appendChild(touchOverlay);
+        
+        // Store reference for later manipulation
+        this.touchControls.set('overlay', touchOverlay);
     }
+
 
     private handleKeyDown(e: KeyboardEvent): void {
         switch(e.key) {
@@ -255,16 +293,16 @@ export class InputHandler {
     }
 
     public hideTouchControls(): void {
-        const controls = document.getElementById('touch-controls');
-        if (controls) {
-            controls.style.display = 'none';
+        const overlay = document.getElementById('touch-overlay');
+        if (overlay) {
+            overlay.style.display = 'none';
         }
     }
 
     public showTouchControls(): void {
-        const controls = document.getElementById('touch-controls');
-        if (controls) {
-            controls.style.display = 'flex';
+        const overlay = document.getElementById('touch-overlay');
+        if (overlay) {
+            overlay.style.display = 'block';
         }
     }
 

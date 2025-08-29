@@ -22,7 +22,7 @@ A complete 2D platformer game built with TypeScript and HTML5 Canvas, featuring 
 - **Particle Effects**: Jump trails, coin sparkles, and death explosions
 - **Game States**: Playing, paused, game over, level complete, and victory screens
 - **Statistics**: Timer, score, best times (stored locally), coins collected, deaths
-- **Touch Controls**: Full iOS/mobile support with on-screen buttons and responsive design
+- **Touch Controls**: Full iOS/mobile support with intuitive screen-based controls and swipe gestures
 
 ### Visual Polish
 - **Smooth Animations**: Player squash/stretch, rotating coins, pulsing goal
@@ -41,10 +41,10 @@ A complete 2D platformer game built with TypeScript and HTML5 Canvas, featuring 
 - **Restart**: R key (restart entire game)
 
 #### Mobile/Touch Devices
-- **Movement**: Touch the left/right arrow buttons
-- **Jump**: Touch the large jump button (↑)
-- **Pause**: Touch the pause button (⏸) in top-right corner
-- **Restart**: Not available on touch - refresh the page
+- **Move Left**: Hold finger on left half of screen
+- **Move Right**: Hold finger on right half of screen  
+- **Jump**: Swipe up anywhere on screen
+- **Pause/Restart**: Not available on touch - refresh the page
 
 ### Objective
 1. Navigate through 3 increasingly challenging levels
@@ -58,6 +58,8 @@ A complete 2D platformer game built with TypeScript and HTML5 Canvas, featuring 
 - Purple platforms move vertically - use them as elevators
 - Time your jumps carefully on moving platforms
 - Collect all coins for maximum score and bragging rights
+- **Mobile**: Screen is split in half - left side moves left, right side moves right
+- **Mobile**: Swipe up quickly for jumping - works from anywhere on screen
 
 ## 🚀 Quick Start
 
