@@ -1,122 +1,144 @@
-# Platform Jumping Game - COMPLETE! 🎉
+# TypeScript Platformer Game 🎮
 
-A fully-featured browser-based platform jumping game built with TypeScript and HTML5 Canvas, without any external frameworks.
+A complete 2D platformer game built with TypeScript and HTML5 Canvas, featuring 3 challenging levels, moving platforms, particle effects, and Web Audio API sound system.
 
-## Status: ALL PHASES COMPLETED ✅
+## 🌟 Features
 
-This game has evolved through 8 development phases from basic movement to a complete platformer with multiple levels, sound effects, and advanced features.
+### Core Gameplay
+- **Smooth Physics Engine**: Custom gravity, friction, and jump mechanics with AABB collision detection
+- **Responsive Controls**: Arrow keys or WASD for movement, Space/Up for jumping
+- **Camera System**: Smooth-following camera for large multi-screen levels
+- **Lives & Respawn**: 3-life system with checkpoint respawning
 
-### Complete Feature List
+### 3 Unique Levels
+1. **Tutorial Valley**: Introduction level with basic platforming
+2. **Mountain Climb**: Moving platforms essential for crossing large gaps
+3. **Sky Fortress**: Expert challenge with vertical elevators and synchronized timing
 
-#### Core Gameplay
-- **Smooth Physics**: Gravity, friction, and responsive jump mechanics
-- **Player Character**: Animated blue character with eyes that follow movement direction
-- **Advanced Controls**: Arrow keys + WASD support, with visual squish animation
-- **Collision Detection**: Precise AABB collision system with platform edges
-- **Camera System**: Smooth-following camera for multi-screen levels
+### Advanced Features
+- **Moving Platforms**: Both horizontal and vertical platforms with directional indicators
+- **Collectible System**: Animated coins with particle collection effects (20+ per level)
+- **Sound System**: Web Audio API with jump, coin, death, and victory sounds
+- **Particle Effects**: Jump trails, coin sparkles, and death explosions
+- **Game States**: Playing, paused, game over, level complete, and victory screens
+- **Statistics**: Timer, score, best times (stored locally), coins collected, deaths
 
-#### 3 Unique Levels
-1. **Tutorial Valley**: Beginner-friendly introduction level
-2. **Mountain Climb**: The classic challenging ascent with moving platforms  
-3. **Sky Fortress**: Advanced level with complex moving platform patterns
+### Visual Polish
+- **Smooth Animations**: Player squash/stretch, rotating coins, pulsing goal
+- **Dynamic Camera**: Follows player with smooth interpolation
+- **UI Overlay**: Real-time stats with semi-transparent backgrounds
+- **Gradient Backgrounds**: Color-coded level themes
 
-#### Game Features
-- **Moving Platforms**: Red platforms that carry the player, with directional arrows
-- **Collectible Coins**: 20+ animated coins per level with particle collection effects
-- **Lives System**: 3 lives with respawn at level start
-- **Death System**: Fall off screen to lose a life and respawn
-- **Level Progression**: Automatic advancement through all 3 levels
+## 🎮 How to Play
 
-#### Audio & Visual Polish
-- **Sound Effects**: Web Audio API sounds for jumping, coins, death, and victory
-- **Particle Systems**: Jump particles and coin collection sparkles
-- **Animations**: Player squish on landing, rotating coins, pulsing goal
-- **Visual Feedback**: Platform shadows, gradient backgrounds, smooth transitions
-- **UI Elements**: Real-time stats display with semi-transparent overlay
+### Controls
+- **Movement**: Arrow Keys or WASD
+- **Jump**: Space or Up Arrow
+- **Pause**: ESC key
+- **Restart**: R key (restart entire game)
 
-#### Progression System
-- **Timer**: Track completion time for each level attempt
-- **Scoring**: Points for coins (100 each), time bonuses, and life bonuses
-- **Best Times**: Local storage tracking of personal records per level
-- **Statistics**: Coins collected, deaths, levels completed tracking
+### Objective
+1. Navigate through 3 increasingly challenging levels
+2. Collect coins for points and best score
+3. Use moving platforms to cross gaps and reach higher areas
+4. Avoid falling off the screen (costs a life)
+5. Reach the golden "GOAL" block to complete each level
 
-#### Game States & Controls
-- **Pause System**: ESC to pause/resume with overlay
-- **Game Over**: Lives depleted triggers game over screen
-- **Victory**: Complete all levels for final victory screen
-- **Restart**: R key to restart from beginning any time
+### Tips
+- Red platforms with arrows are moving platforms that will carry you
+- Purple platforms move vertically - use them as elevators
+- Time your jumps carefully on moving platforms
+- Collect all coins for maximum score and bragging rights
 
-## How to Play
+## 🚀 Quick Start
 
-1. Open `index.html` in a modern web browser
-2. **Movement**: Use Arrow Keys or WASD to move left/right
-3. **Jumping**: Press Space or Up Arrow to jump
-4. **Collect Coins**: Gather glowing coins for points and satisfaction
-5. **Use Moving Platforms**: Red platforms with arrows will carry you
-6. **Reach the Goal**: Find the golden "GOAL" box to complete each level
-7. **Advanced Controls**:
-   - **ESC**: Pause/Resume the game
-   - **R**: Restart from level 1
-   - Avoid falling off the bottom of the screen!
+### Play Online
+**[🎮 Play the Game](https://yourusername.github.io/platformer)** *(GitHub Pages - Coming Soon)*
 
-## Project Structure
+### Local Development
 
-```
-platformer/
-├── src/
-│   └── game.ts         # Main game logic in TypeScript
-├── dist/
-│   ├── game.js         # Compiled JavaScript
-│   └── game.js.map     # Source map for debugging
-├── index.html          # Game canvas and HTML structure
-├── tsconfig.json       # TypeScript configuration
-├── tasks.md            # Development roadmap and tasks
-├── package.json        # Node.js dependencies
-└── README.md           # This file
-```
+#### Prerequisites
+- Node.js (v14+)
+- Modern web browser with ES6 module support
 
-## Development Setup
-
-### Prerequisites
-- Node.js and npm installed
-- A modern web browser
-
-### Installation
+#### Setup
 ```bash
-# Install TypeScript compiler
+# Clone the repository
+git clone https://github.com/yourusername/platformer.git
+cd platformer
+
+# Install dependencies
 npm install
 
-# Compile TypeScript to JavaScript
-npx tsc
-
-# Or watch for changes during development
-npx tsc --watch
+# Build and serve
+npm run dev
 ```
 
-### Running the Game
-Simply open `index.html` in your web browser after compilation.
+The game will be available at `http://localhost:8080`
 
-## Technical Details
+#### Development Commands
+```bash
+npm run build      # Compile TypeScript
+npm run watch      # Watch mode for development
+npm run serve      # Start HTTP server
+npm run dev        # Build + serve (recommended)
+```
 
-- **Language**: TypeScript (compiled to JavaScript)
+## 🏗️ Architecture
+
+### Modular Design
+The codebase is organized into focused modules for maintainability:
+
+```
+src/
+├── game.ts          # Main game orchestrator
+├── types.ts         # TypeScript interfaces and enums
+├── physics.ts       # Physics engine & collision detection
+├── renderer.ts      # All rendering logic with camera system
+├── input.ts         # Keyboard input handling
+├── particles.ts     # Particle effect system
+├── audio.ts         # Web Audio API wrapper
+└── levels.ts        # Level definitions and management
+```
+
+### Key Systems
+- **Physics Engine**: Custom AABB collision with moving platform support
+- **Rendering Pipeline**: Canvas 2D with camera transforms and layered rendering
+- **State Management**: Comprehensive game states (PLAYING, PAUSED, DEAD, etc.)
+- **Audio System**: Web Audio API with procedurally generated sounds
+- **Level System**: Data-driven level definitions with progressive difficulty
+
+## 🛠️ Technical Details
+
+- **Language**: TypeScript with ES6 modules
 - **Rendering**: HTML5 Canvas 2D Context
-- **Canvas Size**: 800x600 pixels
-- **Frame Rate**: 60 FPS
-- **No External Dependencies**: Pure TypeScript/JavaScript implementation
+- **Audio**: Web Audio API (no external audio files)
+- **Storage**: LocalStorage for best times persistence
+- **Architecture**: Modular design with dependency injection
+- **Build System**: TypeScript compiler with npm scripts
+- **Serving**: http-server for proper CORS and module loading
 
-## Next Steps (Phase 2)
+### Browser Requirements
+- ES6 module support
+- HTML5 Canvas 2D Context
+- Web Audio API
+- LocalStorage
+- RequestAnimationFrame
 
-The next phase will add:
-- Gravity system
-- Jumping mechanics
-- Ground collision
-- Physics-based movement
+### Performance
+- 60 FPS target framerate
+- Efficient collision detection with early exits
+- Particle system with automatic cleanup
+- Camera culling for off-screen elements
 
-See `tasks.md` for the complete development roadmap.
+## 🤝 Contributing
 
-## Browser Compatibility
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes following the existing code style
+4. Test thoroughly across different browsers
+5. Submit a pull request
 
-Works in all modern browsers that support:
-- HTML5 Canvas
-- ES2020 JavaScript
-- RequestAnimationFrame API
+## 📄 License
+
+MIT License - feel free to use this code for learning or your own projects!
