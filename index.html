@@ -91,6 +91,18 @@
                 /* iOS Safari viewport height fix */
                 min-height: -webkit-fill-available;
             }
+            
+            #gameCanvas {
+                /* Prevent iOS Safari from selecting the canvas */
+                -webkit-user-select: none;
+                -webkit-touch-callout: none;
+            }
+        }
+        
+        /* Ensure canvas is interactive on mobile */
+        #gameCanvas {
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
         }
     </style>
 </head>

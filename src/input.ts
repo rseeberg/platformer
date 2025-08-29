@@ -7,7 +7,7 @@ export class InputHandler {
     private onResetCallback?: () => void;
     private onPauseCallback?: () => void;
     private onNextLevelCallback?: () => void;
-    private touchControls: Map<string, HTMLElement> = new Map();
+    private touchControls: Map<string, HTMLElement | (() => void)> = new Map();
 
     constructor() {
         this.inputs = {
@@ -45,31 +45,87 @@ export class InputHandler {
     }
 
     private createTouchZones(): void {
-        // Create invisible overlay for touch detection
-        const touchOverlay = document.createElement('div');
-        touchOverlay.id = 'touch-overlay';
-        touchOverlay.style.cssText = `
+        // Get canvas element to attach touch events directly to it
+        const canvas = document.getElementById('gameCanvas');
+        if (!canvas) return;
+
+        // Add visual feedback zones (semi-transparent, will be hidden after first touch)
+        const leftZone = document.createElement('div');
+        leftZone.id = 'left-touch-zone';
+        leftZone.style.cssText = `
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
+            width: 50%;
             height: 100vh;
-            z-index: 999;
-            pointer-events: auto;
-            touch-action: none;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
+            background: linear-gradient(to right, rgba(0, 100, 255, 0.1), transparent);
+            z-index: 998;
+            pointer-events: none;
+            transition: opacity 0.3s;
         `;
 
-        // Variables for touch tracking
-        let activeTouches = new Map();
-        const SWIPE_THRESHOLD = 50; // minimum distance for swipe
-        const SWIPE_TIME_THRESHOLD = 300; // maximum time for swipe (ms)
+        const rightZone = document.createElement('div');
+        rightZone.id = 'right-touch-zone';
+        rightZone.style.cssText = `
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100vh;
+            background: linear-gradient(to left, rgba(255, 100, 0, 0.1), transparent);
+            z-index: 998;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        `;
 
-        // Touch start handler
-        touchOverlay.addEventListener('touchstart', (e) => {
-            e.preventDefault();
+        // Add hint text
+        const hintText = document.createElement('div');
+        hintText.id = 'touch-hint';
+        hintText.innerHTML = `
+            <div style="color: white; text-align: center; padding: 10px; background: rgba(0,0,0,0.5); border-radius: 10px;">
+                <div>← Touch Left Side | Touch Right Side →</div>
+                <div style="margin-top: 5px;">↑ Swipe Up to Jump ↑</div>
+            </div>
+        `;
+        hintText.style.cssText = `
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        `;
+
+        document.body.appendChild(leftZone);
+        document.body.appendChild(rightZone);
+        document.body.appendChild(hintText);
+
+        // Hide hints after first touch
+        let hintsVisible = true;
+        const hideHints = () => {
+            if (hintsVisible) {
+                hintsVisible = false;
+                leftZone.style.opacity = '0';
+                rightZone.style.opacity = '0';
+                hintText.style.opacity = '0';
+                setTimeout(() => {
+                    leftZone.remove();
+                    rightZone.remove();
+                    hintText.remove();
+                }, 300);
+            }
+        };
+
+        // Variables for touch tracking
+        const activeTouches = new Map();
+        const SWIPE_THRESHOLD = 30; // minimum distance for swipe (lower for easier mobile jumping)
+        const SWIPE_TIME_THRESHOLD = 400; // maximum time for swipe (ms)
+
+        // Attach touch handlers directly to document for iOS Safari compatibility
+        const handleTouchStart = (e: TouchEvent) => {
+            // Don't prevent default to allow iOS Safari to work properly
+            hideHints();
             
             for (let i = 0; i < e.changedTouches.length; i++) {
                 const touch = e.changedTouches[i];
@@ -95,13 +151,11 @@ export class InputHandler {
                     this.inputs.right = true;
                     this.inputs.left = false;
                 }
-
             }
-        }, { passive: false });
+        };
 
         // Touch move handler for swipe detection
-        touchOverlay.addEventListener('touchmove', (e) => {
-            e.preventDefault();
+        const handleTouchMove = (e: TouchEvent) => {
             
             for (let i = 0; i < e.changedTouches.length; i++) {
                 const touch = e.changedTouches[i];
@@ -126,11 +180,10 @@ export class InputHandler {
                     }
                 }
             }
-        }, { passive: false });
+        };
 
         // Touch end handler
-        touchOverlay.addEventListener('touchend', (e) => {
-            e.preventDefault();
+        const handleTouchEnd = (e: TouchEvent) => {
             
             for (let i = 0; i < e.changedTouches.length; i++) {
                 const touch = e.changedTouches[i];
@@ -175,11 +228,10 @@ export class InputHandler {
                 this.inputs.left = hasLeft;
                 this.inputs.right = hasRight;
             }
-        }, { passive: false });
+        };
 
         // Touch cancel handler
-        touchOverlay.addEventListener('touchcancel', (e) => {
-            e.preventDefault();
+        const handleTouchCancel = (e: TouchEvent) => {
             
             for (let i = 0; i < e.changedTouches.length; i++) {
                 const touch = e.changedTouches[i];
@@ -191,12 +243,24 @@ export class InputHandler {
                 this.inputs.left = false;
                 this.inputs.right = false;
             }
-        }, { passive: false });
+        };
 
-        document.body.appendChild(touchOverlay);
+        // Bind event handlers with proper options for iOS Safari
+        const eventOptions = { passive: false, capture: false };
         
-        // Store reference for later manipulation
-        this.touchControls.set('overlay', touchOverlay);
+        // Use window for better iOS Safari compatibility
+        window.addEventListener('touchstart', handleTouchStart, eventOptions);
+        window.addEventListener('touchmove', handleTouchMove, eventOptions);
+        window.addEventListener('touchend', handleTouchEnd, eventOptions);
+        window.addEventListener('touchcancel', handleTouchCancel, eventOptions);
+        
+        // Store cleanup function
+        this.touchControls.set('cleanup', () => {
+            window.removeEventListener('touchstart', handleTouchStart);
+            window.removeEventListener('touchmove', handleTouchMove);
+            window.removeEventListener('touchend', handleTouchEnd);
+            window.removeEventListener('touchcancel', handleTouchCancel);
+        });
     }
 
 
@@ -293,17 +357,13 @@ export class InputHandler {
     }
 
     public hideTouchControls(): void {
-        const overlay = document.getElementById('touch-overlay');
-        if (overlay) {
-            overlay.style.display = 'none';
-        }
+        // Touch controls are always active when touch is available
+        // This method is kept for compatibility
     }
 
     public showTouchControls(): void {
-        const overlay = document.getElementById('touch-overlay');
-        if (overlay) {
-            overlay.style.display = 'block';
-        }
+        // Touch controls are always active when touch is available
+        // This method is kept for compatibility
     }
 
     public isTouchDevice(): boolean {
